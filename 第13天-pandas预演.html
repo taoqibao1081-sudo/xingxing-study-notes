@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Day13 - Pandas 4家合并预演报告</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#f5f7fa;color:#333;line-height:1.6;padding:20px}
+.container{max-width:1100px;margin:0 auto}
+h1{text-align:center;color:#1a5276;margin-bottom:5px;font-size:1.8em}
+.subtitle{text-align:center;color:#7f8c8d;margin-bottom:25px;font-size:0.9em}
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.card h2{border-left:4px solid #4472C4;padding-left:12px;color:#2c3e50;margin-bottom:15px;font-size:1.2em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+table{width:100%;border-collapse:collapse;font-size:0.9em;margin-top:10px}
+th{background:#4472C4;color:#fff;padding:10px 12px;text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #eee}
+tr:hover{background:#f0f4ff}
+tr.section{background:#e8f0fe}
+tr.total{background:#e2efda;font-weight:bold}
+tr.grand{background:#d4edda;font-weight:bold;font-size:1.05em}
+.num{text-align:right;font-family:'Consolas','Courier New',monospace}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75em;font-weight:bold}
+.tag-flat{background:#d1ecf1;color:#0c5460}
+.tag-asset{background:#fff3cd;color:#856404}
+.tag-liab{background:#f8d7da;color:#721c24}
+.balance-box{text-align:center;padding:25px;border-radius:12px;margin:15px 0}
+.balance-ok{background:#d4edda;border:2px solid #28a745}
+.balance-fail{background:#f8d7da;border:2px solid #dc3545}
+.balance-box .big{font-size:2.2em;font-weight:bold;margin:10px 0}
+.balance-box .detail{font-size:0.95em;color:#555}
+.code-block{background:#1e1e1e;color:#d4d4d4;padding:18px;border-radius:8px;font-family:'Consolas','Courier New',monospace;font-size:0.82em;overflow-x:auto;line-height:1.5;margin-top:10px}
+.code-block .keyword{color:#569cd6}
+.code-block .comment{color:#6a9955}
+.code-block .string{color:#ce9178}
+.code-block .func{color:#dcdcaa}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px}
+.compare-box{background:#f8f9fa;border-radius:10px;padding:15px}
+.compare-box h3{font-size:0.95em;color:#4472C4;margin-bottom:8px}
+.compare-box ul{list-style:none;padding:0}
+.compare-box li{padding:5px 0;font-size:0.85em;border-bottom:1px dotted #ddd}
+.compare-box li::before{content:'▸ ';color:#4472C4}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🧮 Day 13：Pandas 版 4家统一口径合并预演</h1>
+<p class="subtitle">生成时间：2026-06-26 21:26:11 &nbsp;|&nbsp; 操作耗时：<b>&lt;1秒</b> &nbsp;|&nbsp; 代码行数：<b>~80行</b></p>
+
+<!-- 平账验证 -->
+<div class="card">
+<h2>📐 平账验证</h2>
+<div class="balance-box balance-ok">
+    <div style="font-size:1.2em">✅ 平账通过！</div>
+    <div class="big">
+        资产总计 <b>35,821,000</b> = 负债合计 <b>21,325,000</b> + 所有者权益合计 <b>14,496,000</b>
+    </div>
+    <div class="detail">
+        差额：0 元
+    </div>
+</div>
+</div>
+
+<!-- 关键数据 -->
+<div class="card">
+<h2>📊 合并后关键数据一览</h2>
+<table>
+<tr><th>项目</th><th class="num">期末合计</th><th class="num">年初合计</th></tr>
+<tr class=''><td>其他应付款</td><td class='num'>313,800</td><td class='num'>265,000</td></tr>
+<tr class=''><td>其他应收款</td><td class='num'>799,714</td><td class='num'>705,161</td></tr>
+<tr class=''><td>其他流动资产</td><td class='num'>934,654</td><td class='num'>838,558</td></tr>
+<tr class=''><td>其他非流动资产</td><td class='num'>409,855</td><td class='num'>377,575</td></tr>
+<tr class=''><td>减：累计折旧</td><td class='num'>-3,115,596</td><td class='num'>-2,613,262</td></tr>
+<tr class=''><td>固定资产原价</td><td class='num'>12,462,385</td><td class='num'>10,966,898</td></tr>
+<tr class=''><td>固定资产账面价值</td><td class='num'>9,346,789</td><td class='num'>8,295,162</td></tr>
+<tr class=''><td>在建工程</td><td class='num'>1,272,868</td><td class='num'>1,126,078</td></tr>
+<tr class=''><td>存货</td><td class='num'>3,082,430</td><td class='num'>2,581,763</td></tr>
+<tr class=''><td>实收资本</td><td class='num'>9,000,000</td><td class='num'>9,000,000</td></tr>
+<tr class=''><td>应交税费</td><td class='num'>611,400</td><td class='num'>505,000</td></tr>
+<tr class=''><td>应付利息</td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr class=''><td>应付利润</td><td class='num'>98,800</td><td class='num'>85,000</td></tr>
+<tr class=''><td>应付票据</td><td class='num'>1,051,600</td><td class='num'>760,000</td></tr>
+<tr class=''><td>应付职工薪酬</td><td class='num'>1,074,000</td><td class='num'>925,000</td></tr>
+<tr class=''><td>应付账款</td><td class='num'>6,248,000</td><td class='num'>5,430,000</td></tr>
+<tr class=''><td>应收利息</td><td class='num'>134,940</td><td class='num'>123,000</td></tr>
+<tr class=''><td>应收票据</td><td class='num'>578,123</td><td class='num'>514,573</td></tr>
+<tr class=''><td>应收股利</td><td class='num'>269,880</td><td class='num'>246,000</td></tr>
+<tr class=''><td>应收账款</td><td class='num'>6,204,562</td><td class='num'>5,504,617</td></tr>
+<tr class='total'><td>所有者权益合计</td><td class='num'>14,496,000</td><td class='num'>13,660,000</td></tr>
+<tr class=''><td>无形资产</td><td class='num'>999,631</td><td class='num'>879,960</td></tr>
+<tr class=''><td>未分配利润</td><td class='num'>2,286,000</td><td class='num'>1,775,000</td></tr>
+<tr class='total'><td>流动负债合计</td><td class='num'>17,405,000</td><td class='num'>14,570,000</td></tr>
+<tr class='total'><td>流动资产合计</td><td class='num'>22,159,150</td><td class='num'>19,873,332</td></tr>
+<tr class=''><td>盈余公积</td><td class='num'>1,460,000</td><td class='num'>1,185,000</td></tr>
+<tr class=''><td>短期借款</td><td class='num'>6,622,000</td><td class='num'>5,365,000</td></tr>
+<tr class=''><td>短期投资</td><td class='num'>2,139,189</td><td class='num'>2,098,112</td></tr>
+<tr class='total'><td>负债合计</td><td class='num'>21,325,000</td><td class='num'>18,560,000</td></tr>
+<tr class='grand'><td>负债和所有者权益总计</td><td class='num'>35,821,000</td><td class='num'>32,220,000</td></tr>
+<tr class=''><td>货币资金</td><td class='num'>6,994,352</td><td class='num'>6,376,197</td></tr>
+<tr class='grand'><td>资产总计</td><td class='num'>35,821,000</td><td class='num'>32,220,000</td></tr>
+<tr class=''><td>资本公积</td><td class='num'>1,750,000</td><td class='num'>1,700,000</td></tr>
+<tr class=''><td>长期借款</td><td class='num'>3,920,000</td><td class='num'>3,990,000</td></tr>
+<tr class=''><td>长期债券投资</td><td class='num'>1,132,892</td><td class='num'>1,083,967</td></tr>
+<tr class=''><td>长期应付款</td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr class=''><td>长期待摊费用</td><td class='num'>499,815</td><td class='num'>530,377</td></tr>
+<tr class='total'><td>非流动负债合计</td><td class='num'>3,920,000</td><td class='num'>3,990,000</td></tr>
+<tr class='total'><td>非流动资产合计</td><td class='num'>13,661,850</td><td class='num'>12,313,407</td></tr>
+<tr class=''><td>预付账款</td><td class='num'>1,021,306</td><td class='num'>885,351</td></tr>
+<tr class=''><td>预收账款</td><td class='num'>1,385,400</td><td class='num'>1,235,000</td></tr>
+</table></div><div class="card">
+<h2>🏢 4家公司数据对照</h2>
+<table>
+<tr><th>公司名称</th><th class="num">科目数</th><th class="num">期末资产合计</th><th class="num">年初资产合计</th></tr>
+<tr><td>新星餐饮管理（北京）有限公司</td><td class='num'>41</td><td class='num'>55,724,439</td><td class='num'>48,445,979</td></tr>
+<tr><td>海韵烘焙（青岛）有限公司</td><td class='num'>41</td><td class='num'>15,207,850</td><td class='num'>13,562,749</td></tr>
+<tr><td>绿野茶饮（杭州）有限公司</td><td class='num'>41</td><td class='num'>20,968,100</td><td class='num'>18,454,200</td></tr>
+<tr><td>锦尚餐饮_小企业口径</td><td class='num'>41</td><td class='num'>153,697,400</td><td class='num'>139,683,898</td></tr>
+</table></div><div class="card">
+<h2>🔍 合并明细（前30行样例）</h2>
+<table>
+<tr><th>科目</th><th class="num">期末数</th><th class="num">年初数</th><th>公司名称</th><th>来源</th></tr>
+<tr><td>其他应付款</td><td class='num'>130,000</td><td class='num'>110,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>其他应收款</td><td class='num'>157,072</td><td class='num'>128,799</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>其他流动资产</td><td class='num'>157,072</td><td class='num'>135,081</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>其他非流动资产</td><td class='num'>84,577</td><td class='num'>79,502</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>减：累计折旧</td><td class='num'>-704,813</td><td class='num'>-577,946</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>固定资产原价</td><td class='num'>2,819,252</td><td class='num'>2,480,941</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>固定资产账面价值</td><td class='num'>2,114,439</td><td class='num'>1,902,995</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>在建工程</td><td class='num'>225,540</td><td class='num'>184,942</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>存货</td><td class='num'>1,047,150</td><td class='num'>816,777</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>实收资本</td><td class='num'>2,000,000</td><td class='num'>2,000,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应交税费</td><td class='num'>200,000</td><td class='num'>160,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应付利息</td><td class='num'>0</td><td class='num'>0</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应付利润</td><td class='num'>0</td><td class='num'>0</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应付票据</td><td class='num'>220,000</td><td class='num'>150,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应付职工薪酬</td><td class='num'>300,000</td><td class='num'>260,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应付账款</td><td class='num'>1,900,000</td><td class='num'>1,600,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>应收利息</td><td class='num'>0</td><td class='num'>0</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>应收票据</td><td class='num'>104,715</td><td class='num'>87,960</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>应收股利</td><td class='num'>0</td><td class='num'>0</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>应收账款</td><td class='num'>1,466,010</td><td class='num'>1,319,409</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>所有者权益合计</td><td class='num'>2,775,000</td><td class='num'>2,630,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>无形资产</td><td class='num'>169,155</td><td class='num'>135,324</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>未分配利润</td><td class='num'>255,000</td><td class='num'>180,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>流动负债合计</td><td class='num'>4,730,000</td><td class='num'>3,780,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>流动资产合计</td><td class='num'>5,235,750</td><td class='num'>4,576,043</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>盈余公积</td><td class='num'>320,000</td><td class='num'>250,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>短期借款</td><td class='num'>1,600,000</td><td class='num'>1,200,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>短期投资</td><td class='num'>314,145</td><td class='num'>301,579</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-asset'>双栏-资产</span></td></tr>
+<tr><td>负债合计</td><td class='num'>5,280,000</td><td class='num'>4,380,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+<tr><td>负债和所有者权益总计</td><td class='num'>8,055,000</td><td class='num'>7,010,000</td><td>新星餐饮管理（北京）有限公司</td><td><span class='tag tag-liab'>双栏-负债权益</span></td></tr>
+</table></div><div class="card">
+<h2>⚡ Power Query 操作 vs Pandas 代码 对照</h2>
+<div class="compare">
+<div class="compare-box">
+<h3>🔘 Power Query（你刚才的操作）</h3>
+<ul>
+<li>18个步骤，点了几十下鼠标</li>
+<li>从文件夹导入 → 展开 → 筛选</li>
+<li>拆双栏左/右 → 清洗 → 添加列</li>
+<li>复制3个查询 → 追加合并</li>
+<li>分组汇总 → 平账验证</li>
+<li>耗时：约30分钟</li>
+</ul>
+</div>
+<div class="compare-box">
+<h3>🐍 Pandas（同一件事的代码版）</h3>
+<ul>
+<li><b>80行代码，一秒跑完</b></li>
+<li>for循环读取5个文件</li>
+<li>df.iloc[左栏]/df.iloc[右栏] → concat</li>
+<li>pd.concat → groupby('科目').sum()</li>
+<li>资产==负债+权益? → 输出html</li>
+<li>耗时：<b>&lt;1秒</b></li>
+</ul>
+</div>
+</div>
+
+<div class="code-block">
+<span class="comment"># 核心代码片段：这就是你点了18步做的事</span><br><br>
+<span class="keyword">for</span> fname <span class="keyword">in</span> sorted(os.listdir(SRC)):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;df = pd.read_excel(fname, header=<span class="keyword">None</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> is_flat:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 扁平格式：直接取前3列</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;df = df.iloc[:, :<span class="string">3</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 双栏格式：左右拆分</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;df_left = df.iloc[:, [<span class="string">0,1,2,3</span>]]  <span class="comment"># 资产栏</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;df_right = df.iloc[:, [<span class="string">5,6,7,8</span>]] <span class="comment"># 负债权益栏</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;df = pd.concat([df_left, df_right])<br>
+<br>
+<span class="comment"># 合并+汇总+平账，一行搞定：</span><br>
+summary = merged.<span class="func">groupby</span>(<span class="string">'科目'</span>).<span class="func">sum</span>()<br>
+balanced = (summary[<span class="string">'资产总计'</span>] == <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;summary[<span class="string">'负债合计'</span>] + summary[<span class="string">'所有者权益合计'</span>])
+</div>
+</div>
+
+<div class="card" style="text-align:center;background:#eaf2f8">
+<p style="font-size:1.1em;color:#2c3e50">
+📌 <b>财务类比：</b>Power Query 就像你用计算器一个一个按数字求和 → pandas 就像写了 =SUM() 公式一拉到底。<br>
+两种都会最好——PQ 给你可视化操作的安全感，pandas 给你批量处理的速度。
+</p>
+</div>
+
+</div></body></html>
