@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Query 合并报表操作手册</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f6f3;
+    --bg-sidebar: #faf9f6;
+    --text: #2c2c2a;
+    --text-soft: #5f5e5a;
+    --text-mute: #888780;
+    --border: #e4e2db;
+    --accent: #0f6e56;
+    --accent-light: #e1f5ee;
+    --accent-soft: #9fe1cb;
+    --warn: #854f0b;
+    --warn-light: #faeeda;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+    --code-accent: #4ec9b0;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .sidebar-header p {
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+  .nav { padding: 12px 0; }
+  .nav-section {
+    padding: 6px 20px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .nav-item {
+    display: block;
+    padding: 7px 20px 7px 28px;
+    font-size: 13.5px;
+    color: var(--text-soft);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    border-left-color: var(--accent-soft);
+  }
+  .nav-item.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* Main content */
+  .main {
+    margin-left: 280px;
+    flex: 1;
+    padding: 40px 56px 80px;
+    max-width: 900px;
+  }
+  .main h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 48px 0 8px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+    scroll-margin-top: 20px;
+  }
+  .main h2:first-child { margin-top: 0; }
+  .main h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 32px 0 10px;
+    scroll-margin-top: 20px;
+  }
+  .main h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 20px 0 8px;
+  }
+  .main p { margin: 10px 0; color: var(--text); }
+  .main ul, .main ol { margin: 10px 0 10px 24px; }
+  .main li { margin: 5px 0; }
+
+  /* Tables */
+  .main table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .main th {
+    background: var(--accent);
+    color: #fff;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .main td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .main tr:nth-child(even) td { background: var(--bg-soft); }
+
+  /* Code blocks */
+  .code-wrap { margin: 14px 0; position: relative; }
+  .code-wrap label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+    position: relative;
+  }
+  pre .kw { color: #c586c0; }
+  pre .fn { color: var(--code-accent); }
+  pre .str { color: #ce9178; }
+  pre .cmt { color: #6a9955; }
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #aaa;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .copy-btn.copied { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Callout boxes */
+  .callout {
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  .callout-title { font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+  .callout-warn { background: var(--warn-light); border-left: 4px solid #f0a030; }
+  .callout-warn .callout-title { color: var(--warn); }
+  .callout-tip { background: var(--accent-light); border-left: 4px solid var(--accent); }
+  .callout-tip .callout-title { color: var(--accent); }
+  .callout-pit { background: #fcebeb; border-left: 4px solid #e24b4a; }
+  .callout-pit .callout-title { color: #a32d2d; }
+
+  /* Steps */
+  .steps { counter-reset: step; margin: 14px 0; }
+  .step {
+    position: relative;
+    padding: 10px 0 10px 40px;
+    border-left: 2px solid var(--border);
+    margin-left: 12px;
+  }
+  .step::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: -13px; top: 10px;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step p { margin: 0; }
+  .step strong { color: var(--accent); }
+
+  /* Index cards */
+  .index-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .index-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .index-card:hover {
+    border-color: var(--accent-soft);
+    background: var(--accent-light);
+    transform: translateY(-1px);
+  }
+  .index-card h4 { margin: 0 0 4px; color: var(--accent); font-size: 14px; }
+  .index-card p { margin: 0; font-size: 12px; color: var(--text-mute); }
+
+  .badge {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0 4px;
+  }
+  .badge-warn { background: var(--warn-light); color: var(--warn); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ====== SIDEBAR ====== -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>Power Query 操作手册</h1>
+    <p>合并报表自动化 · 随查随用</p>
+  </div>
+  <div class="nav">
+    <div class="nav-section">快速入口</div>
+    <a class="nav-item" href="#index">场景索引</a>
+
+    <div class="nav-section">基础操作</div>
+    <a class="nav-item" href="#ch1">1. 五大基础操作</a>
+    <a class="nav-item" href="#ch2">2. 追加 vs 合并查询</a>
+
+    <div class="nav-section">M 语言</div>
+    <a class="nav-item" href="#ch3">3. M 语言三件套</a>
+    <a class="nav-item" href="#ch4">4. 常用 M 函数速查</a>
+
+    <div class="nav-section">批量合并</div>
+    <a class="nav-item" href="#ch5">5. 文件夹批量导入</a>
+    <a class="nav-item" href="#ch6">6. 参数表驱动合并</a>
+
+    <div class="nav-section">口径转换</div>
+    <a class="nav-item" href="#ch7">7. 双口径科目映射</a>
+
+    <div class="nav-section">合并抵消</div>
+    <a class="nav-item" href="#ch8">8. 场景1：内部往来抵消</a>
+    <a class="nav-item" href="#ch9">9. 场景2：内部交易抵消</a>
+    <a class="nav-item" href="#ch10">10. 场景3：股权投资抵消</a>
+
+    <div class="nav-section">自动化</div>
+    <a class="nav-item" href="#ch11">11. 路径参数化</a>
+    <a class="nav-item" href="#ch12">12. 动态合计公式</a>
+    <a class="nav-item" href="#ch13">13. 一键刷新与模板</a>
+
+    <div class="nav-section">排错</div>
+    <a class="nav-item" href="#ch14">14. 常见报错排查</a>
+  </div>
+</nav>
+
+<!-- ====== MAIN ====== -->
+<main class="main">
+
+<!-- ==================== INDEX ==================== -->
+<h2 id="index">场景索引：遇到问题翻哪章</h2>
+<p>不用从头看，按你遇到的问题找对应章节：</p>
+<div class="index-grid">
+  <a class="index-card" href="#ch5"><h4>要批量导入多个Excel</h4><p>第5章 文件夹批量导入</p></a>
+  <a class="index-card" href="#ch6"><h4>要加减合并公司</h4><p>第6章 参数表驱动</p></a>
+  <a class="index-card" href="#ch7"><h4>不同准则科目要转换</h4><p>第7章 双口径映射</p></a>
+  <a class="index-card" href="#ch8"><h4>内部往来要抵消</h4><p>第8章 场景1</p></a>
+  <a class="index-card" href="#ch9"><h4>内部交易收入成本要抵消</h4><p>第9章 场景2</p></a>
+  <a class="index-card" href="#ch10"><h4>长投和权益要抵消</h4><p>第10章 场景3</p></a>
+  <a class="index-card" href="#ch11"><h4>文件路径要能改</h4><p>第11章 路径参数化</p></a>
+  <a class="index-card" href="#ch12"><h4>合计公式公司变了就报错</h4><p>第12章 动态合计</p></a>
+  <a class="index-card" href="#ch14"><h4>报错了不知道怎么办</h4><p>第14章 报错排查</p></a>
+  <a class="index-card" href="#ch3"><h4>要写M代码条件判断</h4><p>第3章 M语言三件套</p></a>
+</div>
+
+<!-- ==================== CH1 ==================== -->
+<h2 id="ch1">第1章 五大基础操作</h2>
+<p>这5个操作是所有 PQ 工作的基础，90% 的数据清洗都用它们完成。</p>
+
+<h3>1.1 删除行/列</h3>
+<div class="steps">
+  <div class="step"><p><strong>删列：</strong>选中列 → 右键 → 删除列（或主页→删除列）</p></div>
+  <div class="step"><p><strong>删多列：</strong>Ctrl+点击多列 → 右键 → 删除列</p></div>
+  <div class="step"><p><strong>删顶部空行：</strong>主页 → 删除行 → 删除最前面几行 → 输入行数</p></div>
+  <div class="step"><p><strong>删底部空行：</strong>主页 → 删除行 → 删除最后几行</p></div>
+</div>
+
+<h3>1.2 更改数据类型</h3>
+<div class="steps">
+  <div class="step"><p>点击列名左侧的类型图标</p></div>
+  <div class="step"><p>选择目标类型：<strong>整数/小数/文本/日期</strong></p></div>
+</div>
+<div class="callout callout-tip">
+  <div class="callout-title">财务类比</div>
+  <p>类型就像会计的"科目类别"——金额列必须是数字类型才能求和，日期列必须是日期类型才能排序。类型错了，后面全部出错。</p>
+</div>
+
+<h3>1.3 拆分列</h3>
+<div class="steps">
+  <div class="step"><p>选中列 → 转换 → 拆分列 → 按分隔符</p></div>
+  <div class="step"><p>输入分隔符（如逗号、空格、反斜杠）</p></div>
+  <div class="step"><p>选择拆分位置：最左侧 / 最右侧 / 每次出现</p></div>
+</div>
+<div class="callout callout-tip">
+  <div class="callout-title">典型场景</div>
+  <p>"应收账款-海澜餐饮" 拆成 "应收账款" 和 "海澜餐饮" 两列，方便后续按公司筛选抵消。</p>
+</div>
+
+<h3>1.4 替换值</h3>
+<div class="steps">
+  <div class="step"><p>选中列 → 转换 → 替换值（或右键）</p></div>
+  <div class="step"><p>查找值：要替换的内容（如 <code>null</code>）</p></div>
+  <div class="step"><p>替换为：新内容（如 <code>0</code>）</p></div>
+</div>
+<div class="callout callout-tip">
+  <div class="callout-title">常用场景</div>
+  <p>透视后出现 null 导致合计报错 → 选中所有公司列 → 替换 null 为 0。</p>
+</div>
+
+<h3>1.5 透视列（长转宽）</h3>
+<div class="steps">
+  <div class="step"><p>选中要作为列头的列（如"公司名称"）</p></div>
+  <div class="step"><p>转换 → 透视列</p></div>
+  <div class="step"><p>值列：选要填入数据的列（如"金额"）</p></div>
+  <div class="step"><p>聚合值函数：<strong>不要聚合</strong>（每个项目只有一个值时）</p></div>
+</div>
+<div class="callout callout-warn">
+  <div class="callout-title">注意</div>
+  <p>透视列后，如果某个公司在某些项目上没有值，会出现 <code>null</code>，需要替换为 0。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH2 ==================== -->
+<h2 id="ch2">第2章 追加 vs 合并查询</h2>
+<p>这两个操作名字像，但功能完全不同，必须分清。</p>
+<table>
+  <tr><th>操作</th><th>类比</th><th>什么时候用</th><th>效果</th></tr>
+  <tr><td>追加查询</td><td>两张表上下摞起来</td><td>多家公司报表格式相同，要堆在一起</td><td>行数增加，列数不变</td></tr>
+  <tr><td>合并查询</td><td>两张表左右拼起来</td><td>要用另一张表的数据补信息（如科目映射）</td><td>列数增加，行数不变</td></tr>
+</table>
+
+<h3>2.1 追加查询操作</h3>
+<div class="steps">
+  <div class="step"><p>主页 → 追加查询（或追加为新查询）</p></div>
+  <div class="step"><p>选择要追加的表（可多选）</p></div>
+  <div class="step"><p>确定 → 两张表上下拼接</p></div>
+</div>
+
+<h3>2.2 合并查询操作</h3>
+<div class="steps">
+  <div class="step"><p>主页 → 合并查询</p></div>
+  <div class="step"><p>选择要合并的表</p></div>
+  <div class="step"><p>指定匹配列（两边各选一列，如"科目名称"）</p></div>
+  <div class="step"><p>联接种类：<strong>左外部</strong>（最常用，保留左边所有行）</p></div>
+  <div class="step"><p>确定 → 展开新列（点展开按钮，选需要的字段）</p></div>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">财务类比</div>
+  <p><strong>追加</strong> = 3家子公司资产负债表上下堆起来变一张大表。<br><strong>合并</strong> = 左边是原始科目，右边接上目标科目名（科目映射字典）。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH3 ==================== -->
+<h2 id="ch3">第3章 M 语言三件套</h2>
+<p>M 语言的三个核心语法，掌握它们就能写出自定义逻辑。</p>
+
+<h3>3.1 let ... in 结构</h3>
+<p>所有 M 代码的骨架，把复杂计算拆成多个步骤。</p>
+<div class="code-wrap">
+  <label>M 代码模板</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">let</span>
+    源 = Excel.Workbook(File.Contents(<span class="str">"C:\路径\文件.xlsx"</span>), null, true),
+    表1 = 源{[Item=<span class="str">"Sheet1"</span>,Kind=<span class="str">"Sheet"</span>]}[Data],
+    结果 = 表1
+<span class="kw">in</span>
+    结果</pre>
+</div>
+<div class="callout callout-tip">
+  <div class="callout-title">财务类比</div>
+  <p>let ... in 就像做一张工作底稿——先算A步骤，再算B步骤，最后 in 出你要的那一步结果。每步都可以被后面的步骤引用。</p>
+</div>
+
+<h3>3.2 if ... then ... else 条件判断</h3>
+<p>根据条件返回不同值，类似 Excel 的 IF 函数。</p>
+<div class="code-wrap">
+  <label>M 代码模板</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">if</span> [公司名称] = <span class="str">"海澜餐饮"</span> <span class="kw">then</span> <span class="str">"母公司"</span>
+<span class="kw">else</span> <span class="str">"子公司"</span></pre>
+</div>
+<div class="code-wrap">
+  <label>多条件嵌套写法</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">if</span> [公司名称] = <span class="str">"海澜餐饮"</span> <span class="kw">then</span> <span class="str">"母公司"</span>
+<span class="kw">else if</span> [公司名称] = <span class="str">"绿茶茶饮"</span> <span class="kw">then</span> <span class="str">"子公司A"</span>
+<span class="kw">else</span> <span class="str">"子公司B"</span></pre>
+</div>
+
+<h3>3.3 try ... otherwise 容错处理</h3>
+<p>防止报错中断流程，出错时返回默认值。</p>
+<div class="code-wrap">
+  <label>M 代码模板</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">try</span> Number.From([金额]) <span class="kw">otherwise</span> 0</pre>
+</div>
+<div class="callout callout-tip">
+  <div class="callout-title">财务类比</div>
+  <p>就像 Excel 的 IFERROR——试一下能不能转成数字，转不了就当 0 处理，不会因为某个单元格有文字就整列报错。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH4 ==================== -->
+<h2 id="ch4">第4章 常用 M 函数速查</h2>
+<table>
+  <tr><th>函数</th><th>用途</th><th>示例</th></tr>
+  <tr><td><code>Excel.Workbook</code></td><td>读取 Excel 文件</td><td><code>Excel.Workbook(File.Contents(路径), null, true)</code></td></tr>
+  <tr><td><code>Folder.Files</code></td><td>读取文件夹内所有文件</td><td><code>Folder.Files("C:\文件夹")</code></td></tr>
+  <tr><td><code>File.Contents</code></td><td>读取单个文件</td><td><code>File.Contents("C:\文件.xlsx")</code></td></tr>
+  <tr><td><code>Text.Contains</code></td><td>判断文字是否包含某词</td><td><code>Text.Contains([科目], "内部")</code></td></tr>
+  <tr><td><code>Text.Start</code></td><td>取左边N个字符</td><td><code>Text.Start([科目], 4)</code></td></tr>
+  <tr><td><code>Text.End</code></td><td>取右边N个字符</td><td><code>Text.End([科目], 4)</code></td></tr>
+  <tr><td><code>Text.Split</code></td><td>按分隔符拆分文本</td><td><code>Text.Split([科目], "-")</code></td></tr>
+  <tr><td><code>Number.From</code></td><td>转成数字</td><td><code>Number.From([金额])</code></td></tr>
+  <tr><td><code>Text.From</code></td><td>转成文本</td><td><code>Text.From([金额])</code></td></tr>
+  <tr><td><code>List.Sum</code></td><td>列表求和</td><td><code>List.Sum({1, 2, 3})</code></td></tr>
+  <tr><td><code>List.Skip</code></td><td>跳过列表前N项</td><td><code>List.Skip(列表, 1)</code></td></tr>
+  <tr><td><code>List.Transform</code></td><td>对列表逐项处理</td><td><code>List.Transform(列表, each _ * 2)</code></td></tr>
+  <tr><td><code>Record.FieldValues</code></td><td>取整行所有字段值</td><td><code>Record.FieldValues(_)</code></td></tr>
+  <tr><td><code>Table.SelectRows</code></td><td>筛选行</td><td><code>Table.SelectRows(表, each [金额] > 0)</code></td></tr>
+  <tr><td><code>Table.AddColumn</code></td><td>添加列</td><td><code>Table.AddColumn(表, "新列", each ...)</code></td></tr>
+</table>
+
+<div class="callout callout-tip">
+  <div class="callout-title">符号速记</div>
+  <p><code>_</code> = 当前行/当前项 &nbsp;|&nbsp; <code>[字段名]</code> = 取当前行的某列 &nbsp;|&nbsp; <code>each</code> = "对每个" &nbsp;|&nbsp; <code>??</code> = 如果左边是null就用右边 &nbsp;|&nbsp; <code>&</code> = 字符串拼接</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH5 ==================== -->
+<h2 id="ch5">第5章 文件夹批量导入</h2>
+<p>把一个文件夹里的多个 Excel 文件一次性导入并合并。</p>
+
+<h3>操作步骤</h3>
+<div class="steps">
+  <div class="step"><p><strong>数据</strong> → 获取数据 → 自文件 → 自文件夹</p></div>
+  <div class="step"><p>输入文件夹路径 → 确定</p></div>
+  <div class="step"><p>弹出文件列表 → 点击 <strong>转换数据</strong>（不要点合并！）</p></div>
+  <div class="step"><p>进入 PQ 编辑器 → 保留"Content"和"Name"两列，删除其他</p></div>
+  <div class="step"><p><strong>添加列</strong> → 自定义列 → 公式：<code>Excel.Workbook([Content], null, true)</code></p></div>
+  <div class="step"><p>展开新列 → 勾选 Data、Name → 确定</p></div>
+  <div class="step"><p>再展开 Data 列 → 勾选所有数据列 → 取消"使用原始列名作为前缀"</p></div>
+  <div class="step"><p>筛选掉表头行（取消勾选"项目"等表头文字）</p></div>
+  <div class="step"><p>重命名列、设置类型 → 完成</p></div>
+</div>
+
+<div class="callout callout-warn">
+  <div class="callout-title">常见坑</div>
+  <p>第3步一定要点 <strong>转换数据</strong>，不要点"合并"。点了合并会弹一个文件选择器，只能选一个文件，失去批量意义。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH6 ==================== -->
+<h2 id="ch6">第6章 参数表驱动合并</h2>
+<p>用一张 Excel 表控制"合并哪些公司"，加减公司只改表不改代码。</p>
+
+<h3>6.1 建 Excel 参数表</h3>
+<div class="steps">
+  <div class="step"><p>新建工作表，命名"参数表"</p></div>
+  <div class="step"><p>填入三列：<strong>公司名称 / 文件名 / 纳入合并（Y或N）</strong></p></div>
+  <div class="step"><p>选中数据区域 → Ctrl+T → 勾选"表包含标题" → 确定</p></div>
+</div>
+
+<h3>6.2 导入参数表到 PQ</h3>
+<div class="steps">
+  <div class="step"><p>选中参数表任意单元格 → 数据 → 从表格/范围</p></div>
+  <div class="step"><p>进入 PQ → 重命名查询为"公司清单"</p></div>
+  <div class="step"><p>筛选"纳入合并"列 → 只保留 Y → 确认新增"筛选的行"步骤</p></div>
+</div>
+
+<h3>6.3 根据参数表批量读取文件</h3>
+<div class="steps">
+  <div class="step"><p>添加自定义列"完整路径"：<code>文件夹路径 & [文件名]</code></p></div>
+  <div class="step"><p>添加自定义列"文件内容"：<code>Excel.Workbook(File.Contents([完整路径]), null, true)</code></p></div>
+  <div class="step"><p>展开文件内容 → 勾选 Data → 确定</p></div>
+  <div class="step"><p>再展开 Data → 勾选所有数据列 → 确定</p></div>
+  <div class="step"><p>筛选掉表头行（取消勾选"项目"等）</p></div>
+  <div class="step"><p>删除不需要的列（文件名、完整路径等）→ 保留公司名称+项目+金额</p></div>
+</div>
+
+<h3>6.4 转宽表（合并底稿格式）</h3>
+<div class="steps">
+  <div class="step"><p>选中"公司名称"列 → 转换 → 透视列</p></div>
+  <div class="step"><p>值列选"金额" → 聚合选"不要聚合" → 确定</p></div>
+  <div class="step"><p>替换 null 为 0（选中所有公司列 → 替换值）</p></div>
+  <div class="step"><p>添加动态合计列（见第12章）</p></div>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">使用方法</div>
+  <p><strong>加公司：</strong>参数表添一行 + 把文件放到文件夹 + 刷新<br><strong>删公司：</strong>参数表把 Y 改 N + 刷新<br><strong>换数据：</strong>替换文件夹里的文件 + 刷新</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH7 ==================== -->
+<h2 id="ch7">第7章 双口径科目映射</h2>
+<p>把企业会计准则的科目名转换成小企业会计准则的科目名。</p>
+
+<h3>7.1 建科目映射字典</h3>
+<div class="steps">
+  <div class="step"><p>新建 Excel 表，两列：<strong>原科目（企业准则）/ 目标科目（小企业准则）</strong></p></div>
+  <div class="step"><p>如：应收账款 → 应收账款；其他应收款 → 其他应收款；预付款项 → 预付账款</p></div>
+  <div class="step"><p>Ctrl+T 转为表格 → 导入 PQ</p></div>
+</div>
+
+<h3>7.2 合并查询完成映射</h3>
+<div class="steps">
+  <div class="step"><p>在原始数据查询中 → 主页 → 合并查询</p></div>
+  <div class="step"><p>选择"科目映射"表 → 左右各选"科目名称"列匹配</p></div>
+  <div class="step"><p>联接种类：<strong>左外部</strong>（保留所有原始行）</p></div>
+  <div class="step"><p>确定 → 展开新列 → 只勾选"目标科目"</p></div>
+  <div class="step"><p>检查映射结果：原科目列旁边出现目标科目列</p></div>
+</div>
+
+<h3>7.3 验证映射完整性</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">必须检查</div>
+  <p>展开后如果"目标科目"列出现 <code>null</code>，说明映射字典里漏了这个科目。回 Excel 补上，刷新即可。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH8 ==================== -->
+<h2 id="ch8">第8章 合并抵消 · 场景1：内部往来</h2>
+<p>母子公司之间的应收应付相互抵消。</p>
+
+<h3>业务逻辑</h3>
+<table>
+  <tr><th>母公司</th><th>子公司</th><th>抵消方向</th></tr>
+  <tr><td>其他应收款-子公司（资产↑）</td><td>其他应付款-母公司（负债↑）</td><td>双方对冲归零</td></tr>
+</table>
+
+<h3>操作步骤</h3>
+<div class="steps">
+  <div class="step"><p>把所有公司数据追加为一张长表（公司名称+科目+金额）</p></div>
+  <div class="step"><p>添加条件列"是否内部往来"：<code>if Text.Contains([科目], "内部") then "Y" else "N"</code></p></div>
+  <div class="step"><p>筛选"是否内部往来"= Y 的行</p></div>
+  <div class="step"><p>添加抵消列：母公司行金额取负数，子公司行金额保持正数</p></div>
+  <div class="step"><p>把抵消行追加回原始数据 → 合并报表中内部往来自动归零</p></div>
+</div>
+
+<div class="code-wrap">
+  <label>条件列 M 代码</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">if</span> Text.Contains([科目], <span class="str">"内部"</span>) <span class="kw">then</span>
+    <span class="kw">if</span> [公司名称] = <span class="str">"海澜餐饮"</span> <span class="kw">then</span> -[金额]
+    <span class="kw">else</span> [金额]
+<span class="kw">else</span> 0</pre>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">核心原理</div>
+  <p>内部往来 = 一方的应收 = 另一方的应付。金额相等方向相反，加起来 = 0。母公司取负、子公司取正，追加回去就自动抵消。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH9 ==================== -->
+<h2 id="ch9">第9章 合并抵消 · 场景2：内部交易</h2>
+<p>母公司向子公司销售（或采购），合并层面要抵消内部收入和对应的内部成本。</p>
+
+<h3>业务逻辑</h3>
+<table>
+  <tr><th>母公司</th><th>子公司</th><th>抵消效果</th></tr>
+  <tr><td>主营业务收入-内部销售</td><td>主营业务成本-内部采购</td><td>收入↔成本对冲</td></tr>
+</table>
+
+<h3>操作步骤</h3>
+<div class="steps">
+  <div class="step"><p>在合并数据中，用 <code>Text.Contains</code> 自动识别含"内部"的科目</p></div>
+  <div class="step"><p>内部收入行：金额取负数（冲减收入）</p></div>
+  <div class="step"><p>内部成本行：金额取负数（冲减成本）</p></div>
+  <div class="step"><p>把抵消行追加回原始数据 → 合并层面收入和成本同时减少</p></div>
+</div>
+
+<div class="code-wrap">
+  <label>自动识别+抵消 M 代码</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">if</span> Text.Contains([科目], <span class="str">"内部销售收入"</span>) <span class="kw">then</span> -[金额]
+<span class="kw">else if</span> Text.Contains([科目], <span class="str">"内部采购成本"</span>) <span class="kw">then</span> -[金额]
+<span class="kw">else</span> 0</pre>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">核心原理</div>
+  <p>集团内部的销售，从合并视角看就是"左手卖右手"，不算真正的收入。收入减、成本也减，利润不变，但收入成本规模更真实。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH10 ==================== -->
+<h2 id="ch10">第10章 合并抵消 · 场景3：股权投资</h2>
+<p>母公司长期股权投资与子公司所有者权益相互抵消，确认少数股东权益。</p>
+
+<h3>业务逻辑</h3>
+<table>
+  <tr><th>抵消项</th><th>母公司</th><th>子公司</th><th>方向</th></tr>
+  <tr><td>长期股权投资 ↔ 实收资本+资本公积+未分配利润</td><td>长投（资产）</td><td>所有者权益</td><td>双方对冲</td></tr>
+  <tr><td>少数股东权益</td><td>—</td><td>权益 × 少数股东比例</td><td>差额确认</td></tr>
+</table>
+
+<h3>操作步骤</h3>
+<div class="steps">
+  <div class="step"><p>添加条件列，科目+公司双重判断</p></div>
+  <div class="step"><p>母公司"长期股权投资"行：金额取负数</p></div>
+  <div class="step"><p>子公司"实收资本/资本公积/未分配利润"行：按持股比例取负数</p></div>
+  <div class="step"><p>计算少数股东权益 = 子公司净资产 × (1 - 持股比例)</p></div>
+  <div class="step"><p>添加少数股东权益行（正数，作为合并权益的组成部分）</p></div>
+  <div class="step"><p>所有抵消行追加回原始数据</p></div>
+</div>
+
+<div class="code-wrap">
+  <label>双重判断 M 代码（科目+公司）</label>
+  <pre><button class="copy-btn">复制</button><span class="kw">if</span> [科目] = <span class="str">"长期股权投资"</span> <span class="kw">and</span> [公司名称] = <span class="str">"海澜餐饮"</span> <span class="kw">then</span> -[金额]
+<span class="kw">else if</span> Text.Contains([科目], <span class="str">"实收资本"</span>) <span class="kw">and</span> [公司名称] &lt;&gt; <span class="str">"海澜餐饮"</span> <span class="kw">then</span> -[金额] * 0.8
+<span class="kw">else if</span> Text.Contains([科目], <span class="str">"资本公积"</span>) <span class="kw">and</span> [公司名称] &lt;&gt; <span class="str">"海澜餐饮"</span> <span class="kw">then</span> -[金额] * 0.8
+<span class="kw">else if</span> Text.Contains([科目], <span class="str">"未分配利润"</span>) <span class="kw">and</span> [公司名称] &lt;&gt; <span class="str">"海澜餐饮"</span> <span class="kw">then</span> -[金额] * 0.8
+<span class="kw">else</span> 0</pre>
+</div>
+<div class="callout callout-warn">
+  <div class="callout-title">关键参数</div>
+  <p>上面的 <code>0.8</code> 是母公司持股比例（80%），请根据实际投资比例修改。<code>1 - 0.8 = 0.2</code> 就是少数股东权益比例。</p>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">核心原理</div>
+  <p>母公司长投 = 子公司净资产 × 持股比例。合并时长投和对应权益对冲掉，剩余的权益部分 = 少数股东权益，作为合并报表的权益项目保留。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH11 ==================== -->
+<h2 id="ch11">第11章 路径参数化</h2>
+<p>把写死的文件路径变成可改的参数，换文件夹不用改代码。</p>
+
+<h3>操作步骤</h3>
+<div class="steps">
+  <div class="step"><p>PQ 编辑器 → 管理参数 → 新建参数</p></div>
+  <div class="step"><p>名称：<code>文件夹路径</code>，类型：文本，当前值：填实际路径</p></div>
+  <div class="step"><p>确定 → 左侧出现参数</p></div>
+  <div class="step"><p>回到数据查询 → 点"源"步骤 → 修改公式栏</p></div>
+</div>
+
+<div class="code-wrap">
+  <label>改之前（路径写死）</label>
+  <pre><button class="copy-btn">复制</button>= Excel.Workbook(File.Contents(<span class="str">"C:\固定路径\文件.xlsx"</span>), null, true)</pre>
+</div>
+<div class="code-wrap">
+  <label>改之后（引用参数）</label>
+  <pre><button class="copy-btn">复制</button>= Excel.Workbook(File.Contents(文件夹路径 & <span class="str">"\文件名.xlsx"</span>), null, true)</pre>
+</div>
+
+<div class="callout callout-pit">
+  <div class="callout-title">常见坑：路径拼接少反斜杠</div>
+  <p>如果参数值结尾没有 <code>\</code>，拼接时必须在文件名前加 <code>\</code>。否则 <code>场景2海澜.xlsx</code> 会变成一个无效路径。<br><strong>建议：</strong>参数值以 <code>\</code> 结尾，公式里就不用再加了。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH12 ==================== -->
+<h2 id="ch12">第12章 动态合计公式</h2>
+<p>透视列后，公司数量会变化，固定列名合计公式会报错。用动态公式一劳永逸。</p>
+
+<h3>问题根源</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">写死列名 = 僵化</div>
+  <p><code>[海澜餐饮] + [绿茶茶饮]</code> → 当绿茶被取消合并时，这列不存在了，公式报错。</p>
+</div>
+
+<h3>解决方案</h3>
+<p>不写列名，动态取整行所有数字列求和。相当于 M 语言版的 <code>=SUM(B2:Z2)</code>。</p>
+
+<div class="code-wrap">
+  <label>动态合计公式（直接复制使用）</label>
+  <pre><button class="copy-btn">复制</button>List.Sum(List.Transform(List.Skip(Record.FieldValues(_), 1), each _ ?? 0))</pre>
+</div>
+
+<h3>公式拆解</h3>
+<table>
+  <tr><th>部分</th><th>作用</th><th>Excel 类比</th></tr>
+  <tr><td><code>Record.FieldValues(_)</code></td><td>取当前行所有字段值，变成列表</td><td>把整行数据抓出来</td></tr>
+  <tr><td><code>List.Skip(..., 1)</code></td><td>跳过第1个（"项目"是文字，不能加）</td><td>跳过A列的科目名</td></tr>
+  <tr><td><code>each _ ?? 0</code></td><td>把 null 转成 0</td><td>空格当0处理</td></tr>
+  <tr><td><code>List.Sum(...)</code></td><td>全部求和</td><td><code>=SUM(...)</code></td></tr>
+</table>
+
+<h3>使用方法</h3>
+<div class="steps">
+  <div class="step"><p>添加列 → 自定义列</p></div>
+  <div class="step"><p>新列名：合计</p></div>
+  <div class="step"><p>粘贴上面的公式 → 确定</p></div>
+  <div class="step"><p>验证：改参数表 Y/N → 刷新 → 合计自动重算，不报错</p></div>
+</div>
+
+<div class="callout callout-tip">
+  <div class="callout-title">为什么这个公式是"自动化"的核心</div>
+  <p>它一个列名都不写！不管未来3家、5家、30家公司，它都自动取当前行所有数字列求和。这是从"写死"到"动态"的关键一跃。</p>
+</div>
+
+<hr>
+
+<!-- ==================== CH13 ==================== -->
+<h2 id="ch13">第13章 一键刷新与模板保存</h2>
+
+<h3>13.1 刷新方式</h3>
+<table>
+  <tr><th>操作</th><th>快捷方式</th><th>说明</th></tr>
+  <tr><td>刷新单个查询</td><td>右键查询 → 刷新</td><td>只更新选中的查询</td></tr>
+  <tr><td>刷新全部</td><td>数据 → 全部刷新（Ctrl+Alt+F5）</td><td>更新所有查询+参数表</td></tr>
+</table>
+
+<h3>13.2 保存为可复用模板</h3>
+<div class="steps">
+  <div class="step"><p>文件 → 另存为 → 命名如"合并报表自动化模板.xlsx"</p></div>
+  <div class="step"><p>下次使用：复制模板 → 改参数表 → 替换数据文件 → 全部刷新</p></div>
+  <div class="step"><p>参数表加公司 → 把新文件放文件夹 → 刷新 → 新列自动出现</p></div>
+  <div class="step"><p>参数表改 Y/N → 刷新 → 公司列自动增减</p></div>
+</div>
+
+<h3>13.3 Excel 刷新 vs Power BI 刷新</h3>
+<table>
+  <tr><th>对比项</th><th>Excel</th><th>Power BI Desktop</th></tr>
+  <tr><td>刷新入口</td><td>数据 → 全部刷新</td><td>主页 → 刷新</td></tr>
+  <tr><td>定时刷新</td><td>需 VBA / Power Automate</td><td>网关 + 计划刷新（需 Pro 版）</td></tr>
+  <tr><td>适合场景</td><td>个人/小团队，数据量中等</td><td>大团队协作，数据量大</td></tr>
+</table>
+
+<hr>
+
+<!-- ==================== CH14 ==================== -->
+<h2 id="ch14">第14章 常见报错排查</h2>
+
+<h3>14.1 路径拼接报错</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：DataFormat.Error · 找不到文件</div>
+  <p><strong>原因：</strong>路径拼接少反斜杠，变成 <code>场景2海澜.xlsx</code> 而不是 <code>场景2\海澜.xlsx</code><br><strong>修复：</strong>参数值结尾加 <code>\</code>，或公式里 <code>& "\文件名"</code></p>
+</div>
+
+<h3>14.2 透视列后合计报错</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：找不到列名 / Expression.Error</div>
+  <p><strong>原因：</strong>合计公式写死了列名 <code>[公司A]+[公司B]</code>，公司被取消后列消失<br><strong>修复：</strong>改用第12章的动态合计公式</p>
+</div>
+
+<h3>14.3 透视列出现 null</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：合计列全是 null 或部分行是 null</div>
+  <p><strong>原因：</strong>某公司在某些项目上没数据，透视后变成 null，null + 数字 = null<br><strong>修复：</strong>选中所有公司列 → 替换值 null → 0</p>
+</div>
+
+<h3>14.4 参数表改了但不生效</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：参数表改了 Y/N，刷新后数据没变</div>
+  <p><strong>原因：</strong>PQ 里"公司清单"查询没有添加"筛选的行"步骤<br><strong>修复：</strong>进 PQ → 选中"公司清单" → 筛选"纳入合并"列只保留 Y</p>
+</div>
+
+<h3>14.5 导入后多出表头行</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：数据最后几行出现"项目""金额"文字行</div>
+  <p><strong>原因：</strong>每个 Excel 文件的第一行是表头，导入时混进来了<br><strong>修复：</strong>筛选"项目"列 → 取消勾选"项目"等表头文字 → 确定</p>
+</div>
+
+<h3>14.6 合并查询后目标列出现 null</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：科目映射后，部分行目标科目是 null</div>
+  <p><strong>原因：</strong>映射字典里漏了这些科目<br><strong>修复：</strong>回 Excel 参数表补上缺失的映射 → 刷新</p>
+</div>
+
+<h3>14.7 刷新时报"键不能为 null"</h3>
+<div class="callout callout-pit">
+  <div class="callout-title">症状：刷新时弹出键值错误</div>
+  <p><strong>原因：</strong>合并查询的匹配列里有 null 值<br><strong>修复：</strong>在合并前先筛选掉匹配列为 null 的行，或替换为默认值</p>
+</div>
+
+<hr>
+
+<h2 style="border:none; color:var(--text-mute); font-size:14px; text-align:center; margin-top:48px;">
+  Power Query 合并报表操作手册 · 幸幸专属 · 2026-06-29
+  <br><span style="font-size:12px;">从模块1到模块6 · 全线通关纪念</span>
+</h2>
+
+</main>
+</div>
+
+<script>
+  // Copy button
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const pre = this.parentElement;
+      const code = pre.textContent.replace('复制', '').trim();
+      navigator.clipboard.writeText(code).then(() => {
+        this.textContent = '已复制';
+        this.classList.add('copied');
+        setTimeout(() => {
+          this.textContent = '复制';
+          this.classList.remove('copied');
+        }, 1500);
+      });
+    });
+  });
+
+  // Active nav highlight
+  const navItems = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(sec => {
+      if (window.scrollY >= sec.offsetTop - 60) current = sec.id;
+    });
+    navItems.forEach(item => {
+      item.classList.remove('active');
+      if (item.getAttribute('href') === '#' + current) item.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
