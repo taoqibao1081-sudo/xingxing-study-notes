@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幸幸的学习地图 · Day1-20 通关 + Day21+ 计划</title>
+<style>
+  :root{
+    --pbi:#2C6EBD; --dax:#5B5BD6; --pq:#2E9E5B; --py:#E8833A;
+    --api:#9B59B6; --base:#7F8C8D; --bg:#F4F6F9; --card:#FFFFFF;
+    --ink:#1F2A37; --sub:#5B6B7B; --line:#E3E8EF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,"Microsoft YaHei","PingFang SC",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;padding:28px 16px 60px}
+  .wrap{max-width:1080px;margin:0 auto}
+  /* hero */
+  .hero{background:linear-gradient(120deg,#1F2A37,#2C6EBD);color:#fff;
+    border-radius:18px;padding:30px 32px;box-shadow:0 10px 30px rgba(44,110,189,.25)}
+  .hero h1{font-size:26px;letter-spacing:.5px}
+  .hero p{margin-top:8px;opacity:.92;font-size:15px}
+  .stat{display:flex;gap:22px;margin-top:20px;flex-wrap:wrap}
+  .stat div{background:rgba(255,255,255,.13);border-radius:12px;padding:12px 18px;min-width:96px}
+  .stat b{display:block;font-size:24px}
+  .stat span{font-size:12px;opacity:.85}
+  /* section */
+  h2.sec{margin:34px 4px 14px;font-size:19px;display:flex;align-items:center;gap:10px}
+  h2.sec::before{content:"";width:6px;height:20px;background:var(--pbi);border-radius:3px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 4px 14px;font-size:13px;color:var(--sub)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  /* timeline grid */
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .cell{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 12px 13px;position:relative;overflow:hidden;cursor:default;
+    transition:transform .15s ease, box-shadow .15s ease}
+  .cell:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(31,42,55,.12)}
+  .cell .bar{position:absolute;top:0;left:0;right:0;height:5px}
+  .cell .no{font-size:12px;color:var(--sub);font-weight:600}
+  .cell .dt{font-size:11px;color:var(--sub);margin-left:6px}
+  .cell .tt{font-size:13.5px;margin-top:7px;font-weight:600;line-height:1.45}
+  .cell .tg{display:inline-block;margin-top:8px;font-size:11px;color:#fff;
+    padding:2px 8px;border-radius:20px}
+  /* skills */
+  .skills{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 24px}
+  .sk{display:grid;grid-template-columns:130px 1fr 62px;align-items:center;gap:12px;margin:11px 0}
+  .sk .nm{font-size:14px;font-weight:600}
+  .sk .tr{height:12px;background:var(--line);border-radius:8px;overflow:hidden}
+  .sk .tr i{display:block;height:100%;border-radius:8px;
+    background:linear-gradient(90deg,var(--pbi),var(--pq))}
+  .sk .pc{font-size:12px;color:var(--sub);text-align:right}
+  .sk.none .tr i{background:#D7DEE6}
+  .sk.none .pc{color:#B23B3B}
+  /* next plan */
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ph{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    border-top:5px solid var(--pbi)}
+  .ph:nth-child(2){border-top-color:var(--py)}
+  .ph:nth-child(3){border-top-color:var(--pq)}
+  .ph h3{font-size:15px;margin-bottom:4px}
+  .ph .rng{font-size:12px;color:var(--sub);margin-bottom:10px}
+  .ph ul{list-style:none;font-size:13px}
+  .ph li{padding:5px 0;border-bottom:1px dashed var(--line);display:flex;gap:8px}
+  .ph li:last-child{border-bottom:none}
+  .ph li b{color:var(--pbi);min-width:54px}
+  .side{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:14px}
+  .side h3{font-size:15px;margin-bottom:10px}
+  .chip{display:inline-flex;flex-direction:column;gap:2px;background:#F4F6F9;border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;margin:0 10px 10px 0;min-width:200px;vertical-align:top}
+  .chip b{font-size:13.5px}
+  .chip span{font-size:12px;color:var(--sub)}
+  .foot{text-align:center;color:var(--sub);font-size:12.5px;margin-top:34px}
+  @media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}.phases{grid-template-columns:1fr}.sk{grid-template-columns:96px 1fr 52px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>幸幸的学习地图 · 财务数字化闯关</h1>
+    <p>从「装好 Power BI」到「亲手做出红涨绿跌条件格式的财务驾驶舱」，20 个单元一站盘点；Day21 起路线同步标注。</p>
+    <div class="stat">
+      <div><b>20</b><span>学习单元</span></div>
+      <div><b>6</b><span>能力域</span></div>
+      <div><b>3</b><span>主线/副线</span></div>
+      <div><b>9</b><span>踩坑资产</span></div>
+    </div>
+  </div>
+
+  <h2 class="sec">一、Day1-20 通关时间线</h2>
+  <div class="legend">
+    <span><i style="background:var(--base)"></i>入门综合</span>
+    <span><i style="background:var(--dax)"></i>DAX</span>
+    <span><i style="background:var(--pq)"></i>Power Query</span>
+    <span><i style="background:var(--py)"></i>Python·pandas</span>
+    <span><i style="background:var(--api)"></i>DeepSeek API</span>
+    <span><i style="background:var(--pbi)"></i>Power BI 驾驶舱</span>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <h2 class="sec">二、当前技能矩阵</h2>
+  <div class="skills" id="skills"></div>
+
+  <h2 class="sec">三、Day21+ 下一步路线</h2>
+  <div class="phases">
+    <div class="ph">
+      <h3>第一期 · 合并流程合龙</h3>
+      <div class="rng">建议 Day21-23</div>
+      <ul>
+        <li><b>Day21</b><span>参数化文件夹接入，丢新报表自动识别</span></li>
+        <li><b>Day22</b><span>一键刷新出合并资产负债表+利润表</span></li>
+        <li><b>Day23</b><span>平账校验自动化（不平就红）</span></li>
+      </ul>
+    </div>
+    <div class="ph">
+      <h3>第二期 · 数据量扩展</h3>
+      <div class="rng">建议 Day24-25</div>
+      <ul>
+        <li><b>Day24</b><span>Python 批量造 10~20 家模拟子公司</span></li>
+        <li><b>Day25</b><span>20 家丢进 PQ 流程，压力跑通</span></li>
+      </ul>
+    </div>
+    <div class="ph">
+      <h3>第三期 · 驾驶舱 2.0</h3>
+      <div class="rng">建议 Day26-28</div>
+      <ul>
+        <li><b>Day26</b><span>多页结构（资产/负债权益/同比/排名）</span></li>
+        <li><b>Day27</b><span>A股风统一配色，红涨绿跌贯穿</span></li>
+        <li><b>Day28</b><span>书签导航 + 工具提示，管理层月报质感</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="side">
+    <h3>可选支线（不强制，按兴趣/工作需要选）</h3>
+    <div class="chip"><b>SQL 基础</b><span>SELECT/JOIN/GROUP BY + 本地 SQLite 练手；接真实库可能受网络限制</span></div>
+    <div class="chip"><b>税务数字化</b><span>新增值税法、异常凭证追踪；无网络依赖</span></div>
+    <div class="chip"><b>WPS 多维表格</b><span>内部交易抵消台账，留痕审计；无网络依赖</span></div>
+  </div>
+
+  <div class="foot">配套文档：学习总整理-Day1-20通关地图.md ｜ 下一步学习计划-Day21起.md ｜ 老财整理于 2026-07-12</div>
+</div>
+
+<script>
+  var data = [
+    {n:1,d:"06-15",c:"var(--base)",t:"入门看板·XLOOKUP·Git",g:"入门综合"},
+    {n:2,d:"06-16",c:"var(--base)",t:"切片器联动·LET·push",g:"入门综合"},
+    {n:3,d:"06-17",c:"var(--base)",t:"多表关联·分支",g:"入门综合"},
+    {n:4,d:"06-19",c:"var(--dax)",t:"DAX进阶·LAMBDA·Python初",g:"DAX"},
+    {n:5,d:"06-19",c:"var(--dax)",t:"DAX 时间智能 同比环比",g:"DAX"},
+    {n:6,d:"06-19",c:"var(--dax)",t:"DAX 上下文·驾驶舱升级",g:"DAX"},
+    {n:7,d:"06-19",c:"var(--dax)",t:"DAX 全面复习 7 步",g:"DAX"},
+    {n:8,d:"06-21",c:"var(--pq)",t:"PQ 模块1 系统复习",g:"Power Query"},
+    {n:9,d:"06-21",c:"var(--pq)",t:"PQ 模块2 M 语言",g:"Power Query"},
+    {n:10,d:"06-22",c:"var(--pq)",t:"PQ 模块3 批量合并",g:"Power Query"},
+    {n:11,d:"06-23",c:"var(--pq)",t:"PQ 总复习 7 关",g:"Power Query"},
+    {n:12,d:"06-24",c:"var(--pq)",t:"PQ 模块4 双口径转换",g:"Power Query"},
+    {n:13,d:"06-26",c:"var(--pq)",t:"PQ 4家合并·pandas预演",g:"Power Query"},
+    {n:14,d:"06-27",c:"var(--py)",t:"pandas 核心10函数",g:"Python"},
+    {n:15,d:"06-27~28",c:"var(--py)",t:"pandas 报表合并",g:"Python"},
+    {n:16,d:"06-28",c:"var(--py)",t:"副线A pandas 收官三关",g:"Python"},
+    {n:17,d:"06-28",c:"var(--api)",t:"DeepSeek 映射·往来抵消",g:"API"},
+    {n:18,d:"06-28",c:"var(--pq)",t:"模块5 抵消三件套",g:"Power Query"},
+    {n:19,d:"06-29",c:"var(--pq)",t:"PQ 模块6 自动化收官",g:"Power Query"},
+    {n:20,d:"07-12",c:"var(--pbi)",t:"财务驾驶舱 条件格式",g:"驾驶舱"}
+  ];
+  var g = document.getElementById('grid');
+  data.forEach(function(x){
+    var el = document.createElement('div');
+    el.className = 'cell';
+    el.innerHTML = '<div class="bar" style="background:'+x.c+'"></div>'+
+      '<div><span class="no">单元'+x.n+'</span><span class="dt">'+x.d+'</span></div>'+
+      '<div class="tt">'+x.t+'</div>'+
+      '<span class="tg" style="background:'+x.c+'">'+x.g+'</span>';
+    g.appendChild(el);
+  });
+
+  var skills = [
+    {n:"Power Query",p:95},
+    {n:"Power BI 可视化",p:80},
+    {n:"DAX",p:80},
+    {n:"Python / pandas",p:70},
+    {n:"DeepSeek API",p:70},
+    {n:"Excel 进阶",p:70},
+    {n:"Git",p:70},
+    {n:"SQL / 税务 / 多维表",p:5,none:true}
+  ];
+  var s = document.getElementById('skills');
+  skills.forEach(function(x){
+    var cls = x.none ? 'sk none' : 'sk';
+    var pc = x.none ? '未涉及' : x.p+'%';
+    var el = document.createElement('div');
+    el.className = cls;
+    el.innerHTML = '<div class="nm">'+x.n+'</div>'+
+      '<div class="tr"><i style="width:'+x.p+'%"></i></div>'+
+      '<div class="pc">'+pc+'</div>';
+    s.appendChild(el);
+  });
+</script>
+</body>
+</html>
